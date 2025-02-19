@@ -1,0 +1,144 @@
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.io.*;
+import java.sql.*;
+import javax.servlet.annotation.WebServlet;
+@WebServlet(urlPatterns = {"/updateservlet"})
+public class UpdateServlet extends HttpServlet {
+    
+    // Method to fetch user data from the database
+    private Connection getConnection() throws SQLException,ClassNotFoundException{
+        // Change these to your actual DB credentials
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost:3306/demo";
+        String user = "root";
+        String password = "";
+        
+        return DriverManager.getConnection(url, user, password);
+    }
+
+   
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+
+        // Get the user ID from the request (could be from session or query parameter)
+//        String userIdParam = request.getParameter("userId");
+//        int userId = Integer.parseInt(userIdParam);  // Assume userId is passed as query parameter
+//        
+        try {
+     
+
+ 
+               Connection connection=getConnection();
+               
+             String query = "SELECT fname, lname, mobile, address FROM user WHERE uid = ?";
+             PreparedStatement stmt = connection.prepareStatement(query);
+            
+                   stmt.setInt(1, 4);
+                     ResultSet rs = stmt.executeQuery();
+                    if (rs.next()) {
+            // Output HTML form with existing data filled in
+            out.println("<html><head><title>Update User Data</title>");
+            out.println("<link rel='stylesheet' type='text/css' href='css/style.css'>"); // External CSS
+            out.println("</head><body>");
+            out.println("<div class='container'>");
+            out.println("<h2>Update Your Information</h2>");
+            out.println("<form action='updateservlet' method='post'>");
+
+            // First Name field
+            out.println("<div class='form-group'>");
+            out.println("<label for='firstName'>First Name:</label>");
+            out.println("<input type='text' id='firstName' name='firstName' value='" + rs.getString("fname") + "' required>");
+            out.println("</div>");
+
+            // Last Name field
+            out.println("<div class='form-group'>");
+            out.println("<label for='lastName'>Last Name:</label>");
+            out.println("<input type='text' id='lastName' name='lastName' value='" + rs.getString("lname") + "' required>");
+            out.println("</div>");
+
+            // Mobile Number field
+            out.println("<div class='form-group'>");
+            out.println("<label for='mobileNo'>Mobile No:</label>");
+            out.println("<input type='text' id='mobileNo' name='mobileNo' value='" + rs.getString("mobile") + "' required>");
+            out.println("</div>");
+
+            // Address field
+            out.println("<div class='form-group'>");
+            out.println("<label for='address'>Address:</label>");
+            out.println("<textarea id='address' name='address' required>" + rs.getString("address") + "</textarea>");
+            out.println("</div>");
+
+            // Submit button
+            out.println("<button type='submit'>Update</button>");
+            out.println("</form>");
+            out.println("</div>"); // Closing container div
+            out.println("</body></html>");
+        } else {
+            out.println("<html><body><h3>User not found!</h3></body></html>");
+        }
+    } catch (SQLException | ClassNotFoundException e) {
+        out.println("<html><body><h3>Error retrieving data from database: " + e.getMessage() + "</h3></body></html>");
+    }
+
+    }
+
+    // Handling POST request to update the data in the database
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // Get updated data from the form
+        String firstName = request.getParameter("firstName");
+        String lastName = request.getParameter("lastName");
+        String mobileNo = request.getParameter("mobileNo");
+        String address = request.getParameter("address");
+
+        // Get userId from the request to update the correct user
+//        String userIdParam = request.getParameter("userId");
+//        int userId = Integer.parseInt(userIdParam);
+
+        // Update the user data in the database
+        try {
+            
+                String query = "UPDATE user SET fname = ?, lname = ?, mobile = ?, address = ? WHERE uid = ?";
+             Connection connection = getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query);
+            stmt.setString(1, firstName);
+            stmt.setString(2, lastName);
+            stmt.setString(3, mobileNo);
+            stmt.setString(4, address);
+            stmt.setInt(5, 4);
+            
+            stmt.executeUpdate();
+            
+//            updateUserDataInDatabase(userId, firstName, lastName, mobileNo, address);
+
+            // Respond with success message
+            response.setContentType("text/html");
+            PrintWriter out = response.getWriter();
+            out.println("<html><head><title>Update Success</title></head><body>");
+            out.println("<h2>User data updated successfully!</h2>");
+            out.println("<a href='UpdateServlet?userId=" + 4 + "'>Go back to update page</a>");
+            out.println("</body></html>");
+        } catch (SQLException | ClassNotFoundException e) {
+            response.getWriter().println("Error updating user data: " + e.getMessage());
+        }
+    }
+
+    // Method to update the user data in the database
+//    private void updateUserDataInDatabase(int userId, String firstName, String lastName, String mobileNo, String address) throws SQLException {
+//        String query = "UPDATE users SET first_name = ?, last_name = ?, mobile_no = ?, address = ? WHERE user_id = ?";
+//        try (Connection connection = getConnection();
+//             PreparedStatement stmt = connection.prepareStatement(query)) {
+//            stmt.setString(1, firstName);
+//            stmt.setString(2, lastName);
+//            stmt.setString(3, mobileNo);
+//            stmt.setString(4, address);
+//            stmt.setInt(5, userId);
+//            
+//            stmt.executeUpdate();
+//        }
+//    }
+
+   
+  
+}
